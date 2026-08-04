@@ -1,21 +1,22 @@
-from models.User import User, UserUpdate
-from database import users
+from models.db.user import User
+from models.schemas.User import UserCreate, UserUpdate
 from services import security_handler
 from fastapi import HTTPException
 from datetime import timezone, datetime
+from sqlalchemy import or_
+from sqlalchemy.orm import Session
 
-def find_user(user_id: int):
-    for user in users:
-        if user.id == user_id:
-            return user
-    return None
-
-def get_user(user_id: int):
-    user = find_user(user_id)
-    
+def find_user(user_id: int, db: Session):
+    user = db.query(User).filter(User.id == user_id).first()
+        
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-        
+    
+    return user
+
+def get_user(user_id: int, db: Session):
+    user = find_user(user_id, db)
+    
     return {
         "id": user.id,
         "name": user.name,
@@ -26,7 +27,9 @@ def get_user(user_id: int):
         "update_date": user.update_date,
     }
 
-def get_users():
+def get_users(db: Session):
+    db_users_data = db.query(User).all()
+            
     return [
         {
             "id": user.id,
@@ -36,34 +39,30 @@ def get_users():
             "status": user.status,
             "creation_date": user.creation_date,
             "update_date": user.update_date,
-        }
-        for user in users
+        } for user in db_users_data
     ]
 
-
-def register_user(new_user: User):
-    for user in users:
-        if user.email == new_user.email:
-            raise HTTPException(status_code=409, detail="User already exists")
-
+def register_user(new_user: UserCreate, db: Session):
+    existing_user = db.query(User).filter(or_(User.email == new_user.email, User.phone == new_user.phone)).first()
+    if existing_user: 
+        raise HTTPException(status_code=409, detail="User already exists")
+        
     user = User(
-        id=len(users) + 1,
         name=new_user.name,
         email=new_user.email,
         phone=new_user.phone,
         password=security_handler.hash_password(new_user.password),
     )
-
-    users.append(user)
-
+    
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    
     return {"message": "User registered successfully!"}
 
-
-def update_user(user_id: int, user_data: UserUpdate):
-    user = find_user(user_id)
+def update_user(user_id: int, user_data: UserUpdate, db: Session):
     
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    user = find_user(user_id, db)
     
     updated_data = user_data.model_dump(exclude_unset=True)
 
@@ -73,14 +72,15 @@ def update_user(user_id: int, user_data: UserUpdate):
         setattr(user, field, value)
 
     user.update_date = datetime.now(timezone.utc)
+    
+    db.commit()
+    db.refresh(user)
     return {"message": "User update successfully!"}
 
-def delete_user(user_id: int):
-    user = find_user(user_id)
-    
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    users.remove(user)
+def delete_user(user_id: int, db: Session):
+    user = find_user(user_id, db)
+
+    db.delete(user)
+    db.commit()
     
     return {"message": f"User ({user.email}) deleted"}

@@ -1,6 +1,9 @@
 from fastapi.routing import APIRouter
-from models.User import User, UserUpdate
+from fastapi import Depends
+from models.schemas.User import UserCreate, UserUpdate
 from services import user_services
+from database import get_db
+from sqlalchemy.orm import Session
 
 router = APIRouter(
     prefix="/user", 
@@ -8,21 +11,21 @@ router = APIRouter(
 )
 
 @router.get("/{user_id}")
-def get_user(user_id: int):
-    return user_services.get_user(user_id)
+def get_user(user_id: int, db: Session = Depends(get_db)):
+    return user_services.get_user(user_id, db)
 
 @router.get("/")
-def get_users():
-    return user_services.get_users()
+def get_users(db: Session = Depends(get_db)):
+    return user_services.get_users(db)
 
 @router.post("/")
-def register_user(new_user: User):
-    return user_services.register_user(new_user)
+def register_user(new_user: UserCreate, db: Session = Depends(get_db)):
+    return user_services.register_user(new_user, db)
 
 @router.patch("/{user_id}")
-def update_user(user_id: int, user_data: UserUpdate):
-    return user_services.update_user(user_id, user_data)
+def update_user(user_id: int, user_data: UserUpdate, db: Session = Depends(get_db)):
+    return user_services.update_user(user_id, user_data, db)
 
 @router.delete("/{user_id}")
-def delete_user(user_id: int):
-    return user_services.delete_user(user_id)
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+    return user_services.delete_user(user_id, db)
