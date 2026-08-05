@@ -1,9 +1,11 @@
-from models.LoginRequest import LoginRequest
-from database import users
+from models.schemas.LoginRequest import LoginRequest
+from sqlalchemy.orm import Session
 from services import token_handler, security_handler
 from fastapi import HTTPException
+from models.db.user import User
 
-def login(login_data: LoginRequest):
+def login(login_data: LoginRequest, db: Session):
+    users = db.query(User).all()
     for user in users:
         if user.email == login_data.email:
             if security_handler.verify_user_password(login_data.password, user.password):  
