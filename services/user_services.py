@@ -5,41 +5,20 @@ from fastapi import HTTPException
 from datetime import timezone, datetime
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
+from services.formatter import format_user
+from services.user_finder import find_user
 
-def find_user(user_id: int, db: Session):
-    user = db.query(User).filter(User.id == user_id).first()
-        
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    return user
-
-def get_user(user_id: int, db: Session):
+def get_user(user_id: int, db: Session) -> dict:
     user = find_user(user_id, db)
     
-    return {
-        "id": user.id,
-        "name": user.name,
-        "email": user.email,
-        "phone": user.phone,
-        "status": user.status,
-        "creation_date": user.creation_date,
-        "update_date": user.update_date,
-    }
+    return format_user(user)
 
-def get_users(db: Session):
+def get_users(db: Session) -> list[dict]:
     db_users_data = db.query(User).all()
             
     return [
-        {
-            "id": user.id,
-            "name": user.name,
-            "email": user.email,
-            "phone": user.phone,
-            "status": user.status,
-            "creation_date": user.creation_date,
-            "update_date": user.update_date,
-        } for user in db_users_data
+        format_user(user)
+        for user in db_users_data
     ]
 
 def register_user(new_user: UserCreate, db: Session):
@@ -58,7 +37,7 @@ def register_user(new_user: UserCreate, db: Session):
     db.commit()
     db.refresh(user)
     
-    return {"message": "User registered successfully!"}
+    return format_user(user)
 
 def update_user(user_id: int, user_data: UserUpdate, db: Session):
     
@@ -75,7 +54,7 @@ def update_user(user_id: int, user_data: UserUpdate, db: Session):
     
     db.commit()
     db.refresh(user)
-    return {"message": "User update successfully!"}
+    return format_user(user)
 
 def delete_user(user_id: int, db: Session):
     user = find_user(user_id, db)
