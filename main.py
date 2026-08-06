@@ -4,7 +4,23 @@ from database import engine, Base
 from models.db.user import User
 from exceptions.handlers import register_exception_handlers
 
-app = FastAPI()
+app = FastAPI(
+    title="User Management API",
+    description="""
+    REST API for user management and JWT authentication.
+
+    ## Features
+
+    - User CRUD
+    - JWT Authentication
+    - Protected routes
+    """,
+    version="1.0.0",
+    contact={
+        "name": "Thiago Henrique",
+        "email": "thiago.silva1001@outlook.com",
+    },
+)
 
 register_exception_handlers(app)
 
