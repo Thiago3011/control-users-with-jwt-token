@@ -1,4 +1,4 @@
-from jose import jwt
+from jose import jwt, JWTError, ExpiredSignatureError
 from fastapi import HTTPException
 from datetime import datetime, timezone, timedelta
 from sqlalchemy.orm import Session
@@ -21,7 +21,12 @@ def create_access_token(user_id: int) -> str:
     return jwt.encode(payload, SECRET_KEY, ALGORITHM)
 
 def decode_access_token(token: str) -> dict:
-    return jwt.decode(token, SECRET_KEY, [ALGORITHM])
+    try:
+        return jwt.decode(token, SECRET_KEY, [ALGORITHM])
+    except ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token Expired")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid Token")
 
 def get_user_with_token(db: Session, token: str):
         decoded_token = decode_access_token(token)
