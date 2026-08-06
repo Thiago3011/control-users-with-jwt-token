@@ -18,7 +18,7 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 def get_users(db: Session = Depends(get_db)):
     return user_services.get_users(db)
 
-@router.post("/")
+@router.post("/", status_code=201)
 def register_user(new_user: UserCreate, db: Session = Depends(get_db)):
     return user_services.register_user(new_user, db)
 
@@ -26,6 +26,6 @@ def register_user(new_user: UserCreate, db: Session = Depends(get_db)):
 def update_user(user_id: int, user_data: UserUpdate, db: Session = Depends(get_db)):
     return user_services.update_user(user_id, user_data, db)
 
-@router.delete("/{user_id}")
+@router.delete("/{user_id}", status_code=204)
 def delete_user(user_id: int, db: Session = Depends(get_db)):
     return user_services.delete_user(user_id, db)
