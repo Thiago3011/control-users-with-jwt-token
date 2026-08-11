@@ -16,5 +16,4 @@ def login(login_data: LoginRequest, db: Session):
                     "token": token_handler.create_access_token(user.id)
                 }
                 
-            raise HTTPException(status_code=401, detail="Invalid credentials")
     raise HTTPException(status_code=401, detail="Invalid credentials")
