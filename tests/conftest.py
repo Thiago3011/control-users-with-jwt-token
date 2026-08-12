@@ -40,3 +40,38 @@ def client():
         
     app.dependency_overrides.clear()
     Base.metadata.drop_all(bind=engine)
+    
+@pytest.fixture
+def user_data():
+    return {
+        "name": "Test User",
+        "email": "test@example.com",
+        "phone": "1599999999",
+        "password": "password"
+    }
+    
+@pytest.fixture
+def user(client, user_data):
+    response = client.post('/user/', json=user_data)
+    
+    assert response.status_code == 201
+    
+    return response.json()
+
+@pytest.fixture
+def auth_user(client, user_data, user):
+    response = client.post(
+        '/auth/login', 
+        json={
+            "email": user_data['email'], 
+            "password": user_data['password']
+        }
+    )
+    
+    assert response.status_code == 200
+    
+    response_data = response.json()
+    
+    return response_data
+    
+    

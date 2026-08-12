@@ -2,21 +2,11 @@ from datetime import datetime, timezone, timedelta
 from jose import jwt
 from services.token_handler import SECRET_KEY, ALGORITHM
 
-def test_login(client):
-    user_data = {
-        "name": "Auth User",
-        "email": "auth@example.com",
-        "phone": "15999999999",
-        "password": "StrongPassword123"
-    }
-
-    create_response = client.post("/user/", json=user_data)
-
-    assert create_response.status_code == 201
+def test_login(client, user_data, user):
 
     login_data = {
-        "email": "auth@example.com",
-        "password": "StrongPassword123"
+        "email": user_data["email"],
+        "password": user_data["password"]
     }
 
     response = client.post("/auth/login", json=login_data)
@@ -29,29 +19,9 @@ def test_login(client):
     assert response_data["token_type"] == "bearer"
     assert response_data["token"]
 
-def test_get_me(client):
-    user_data = {
-        "name": "Auth User",
-        "email": "me@example.com",
-        "phone": "15999999999",
-        "password": "StrongPassword123"
-    }
+def test_get_me(client, user_data, auth_user):
 
-    create_response = client.post("/user/", json=user_data)
-
-    assert create_response.status_code == 201
-
-    login_response = client.post(
-        "/auth/login",
-        json={
-            "email": "me@example.com",
-            "password": "StrongPassword123"
-        }
-    )
-
-    assert login_response.status_code == 200
-
-    token = login_response.json()["token"]
+    token = auth_user["token"]
 
     response = client.get(
         "/auth/me",
@@ -61,24 +31,14 @@ def test_get_me(client):
     )
 
     assert response.status_code == 200
-    assert response.json()["email"] == "me@example.com"
+    assert response.json()["email"] == user_data["email"]
     
-def test_login_wrong_password(client):
-    user_data = {
-        "name": "Auth User",
-        "email": "wrongpassword@example.com",
-        "phone": "15999999999",
-        "password": "StrongPassword123"
-    }
-
-    create_response = client.post("/user/", json=user_data)
-
-    assert create_response.status_code == 201
+def test_login_wrong_password(client, user_data, user):
 
     response = client.post(
         "/auth/login",
         json={
-            "email": "wrongpassword@example.com",
+            "email": user_data["email"],
             "password": "WrongPassword123"
         }
     )

@@ -4,79 +4,74 @@ def test_get_users(client):
     assert response.status_code == 200
     assert response.json() == []
     
-def test_create_user(client):
-    user_data = {
-        "name": "Test User",
-        "email": "test@example.com",
-        "phone": "1599999999",
-        "password": "password"
-    }
+def test_create_user(client, user_data):
     
     response = client.post("/user/", json=user_data)
     
     assert response.status_code == 201
-    assert response.json()["name"] == "Test User"
-    assert response.json()["email"] == "test@example.com"
+    assert response.json()["name"] == user_data["name"]
+    assert response.json()["email"] == user_data["email"]
     
-def test_get_user(client):
-    user_data = {
-        "name": "Test User",
-        "email": "getuser@example.com",
-        "phone": "15999999999",
-        "password": "StrongPassword123"
-    }
+def test_get_user(client, user, user_data):
 
-    create_response = client.post("/user/", json=user_data)
-
-    user_id = create_response.json()["id"]
-
-    response = client.get(f"/user/{user_id}")
+    response = client.get(f"/user/{user['id']}")
 
     assert response.status_code == 200
-    assert response.json()["name"] == "Test User"
-    assert response.json()["email"] == "getuser@example.com"
+    assert response.json()["name"] == user_data["name"]
+    assert response.json()["email"] == user_data["email"]
     
-def test_update_user(client):
-    user_data = {
-        "name": "Test User",
-        "email": "update@example.com",
-        "phone": "15999999999",
-        "password": "StrongPassword123"
-    }
-
-    create_response = client.post("/user/", json=user_data)
-
-    user_id = create_response.json()["id"]
+def test_update_user(client, user):
 
     update_data = {
         "name": "Updated User"
     }
 
     response = client.patch(
-        f"/user/{user_id}",
+        f"/user/{user['id']}",
         json=update_data
     )
 
     assert response.status_code == 200
     assert response.json()["name"] == "Updated User"
     
-def test_delete_user(client):
-    user_data = {
-        "name": "Test User",
-        "email": "delete@example.com",
-        "phone": "15999999999",
-        "password": "StrongPassword123"
+def test_update_user_password(client, user, user_data):
+    updated_data = {
+        "password": "NewPassword123"
     }
+    
+    response = client.patch(
+        f'/user/{user["id"]}', 
+        json=updated_data
+    )
+    
+    assert response.status_code == 200
+    
+    response_login = client.post(
+        '/auth/login', 
+        json={
+            "email": user_data["email"],
+            "password": user_data["password"]
+        }
+    )
+    assert response_login.status_code == 401
+    
+    response_updated_login = client.post(
+        '/auth/login', 
+        json={
+            "email": user_data["email"],
+            "password": updated_data["password"]
+        }
+    )
+    assert response_updated_login.status_code == 200
+    
+    
+def test_delete_user(client, user):
 
-    create_response = client.post("/user/", json=user_data)
-
-    user_id = create_response.json()["id"]
-
-    response = client.delete(f"/user/{user_id}")
+    response = client.delete(f"/user/{user['id']}")
 
     assert response.status_code == 204
 
-    get_response = client.get(f"/user/{user_id}")
+    get_response = client.get(f"/user/{user['id']}")
 
     assert get_response.status_code == 404
 
@@ -85,41 +80,31 @@ def test_get_user_not_found(client):
 
     assert response.status_code == 404
     
-def test_create_user_duplicate_email(client):
-    user_data = {
-        "name": "Test User",
-        "email": "duplicate@example.com",
-        "phone": "15999999999",
-        "password": "StrongPassword123"
-    }
+def test_create_user_duplicate_email(client, user_data):
+    
+    duplicated_data = user_data.copy()
+    duplicated_data['email'] = "duplicate@example.com"
 
-    first_response = client.post("/user/", json=user_data)
+    first_response = client.post("/user/", json=duplicated_data)
 
     assert first_response.status_code == 201
 
-    second_response = client.post("/user/", json=user_data)
+    second_response = client.post("/user/", json=duplicated_data)
 
     assert second_response.status_code == 409
     
-def test_create_user_missing_email(client):
-    user_data = {
-        "name": "Test User",
-        "phone": "15999999999",
-        "password": "StrongPassword123"
-    }
+def test_create_user_missing_email(client, user_data):
+    test_data = user_data.copy()
+    del test_data['email']
 
-    response = client.post("/user/", json=user_data)
+    response = client.post("/user/", json=test_data)
 
     assert response.status_code == 422
     
-def test_create_user_invalid_email(client):
-    user_data = {
-        "name": "Test User",
-        "email": "invalid-email",
-        "phone": "15999999999",
-        "password": "StrongPassword123"
-    }
+def test_create_user_invalid_email(client, user_data):
+    test_data = user_data.copy()
+    test_data['email'] = "invalid-email"
 
-    response = client.post("/user/", json=user_data)
+    response = client.post("/user/", json=test_data)
 
     assert response.status_code == 422
