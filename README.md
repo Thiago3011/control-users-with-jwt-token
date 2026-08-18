@@ -6,7 +6,7 @@ The project was developed with a modular backend architecture, focusing on **sep
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.136.3-009688?logo=fastapi)
-![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-ORM-red)
+![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-red)
 ![Pytest](https://img.shields.io/badge/Pytest-Test%20Suite-green?logo=pytest)
 ![Coverage](https://img.shields.io/badge/Coverage-98%25-brightgreen)
 
@@ -91,6 +91,8 @@ backend-control-users-with_jwt_and_token/
 ├── database.py
 ├── pytest.ini
 ├── .coveragerc
+├── requirements.txt
+├── requirements-dev.txt
 │
 ├── exceptions/
 │   └── handlers.py
@@ -152,7 +154,7 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
-### 4. Install dependencies
+### 4. Install application dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -168,6 +170,34 @@ The API will be available at:
 
 ```text
 http://127.0.0.1:8000
+```
+
+---
+
+## 🧪 Development & Testing Setup
+
+To install the testing and development dependencies:
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+This installs the application dependencies plus the tools required to run the automated test suite.
+
+### Run the test suite
+
+```bash
+pytest
+```
+
+The project is configured so that Pytest automatically runs the test suite with code coverage.
+
+### Current results
+
+```text
+16 tests passed
+98% application code coverage
+0 warnings
 ```
 
 ---
@@ -264,9 +294,7 @@ The project implements several security-related practices:
 
 ## 🧪 Automated Testing
 
-The project includes automated tests using **Pytest**.
-
-Current test coverage includes:
+The test suite covers:
 
 * User creation
 * User listing
@@ -285,31 +313,13 @@ Current test coverage includes:
 * Invalid JWT tokens
 * Expired JWT tokens
 
-### Run the test suite
+### Test isolation
 
-```bash
-pytest
-```
-
-The project is configured so that Pytest automatically runs the test suite and displays code coverage.
-
-### Current results
-
-```text
-16 tests passed
-98% application code coverage
-0 warnings
-```
-
----
-
-## 🧪 Test Isolation
-
-The test suite uses a dedicated **in-memory SQLite database**.
+The tests use a dedicated **in-memory SQLite database**.
 
 This keeps the test environment isolated from the development database and allows each test to run independently.
 
-The project also uses Pytest fixtures to provide:
+Pytest fixtures provide:
 
 * Test HTTP client
 * Test database session
@@ -323,11 +333,15 @@ The project also uses Pytest fixtures to provide:
 
 Coverage is measured using `pytest-cov`.
 
+The project is configured so that running:
+
 ```bash
 pytest
 ```
 
-The current application coverage is:
+automatically executes the test suite and displays the application code coverage.
+
+Current coverage:
 
 ```text
 98%
@@ -384,7 +398,7 @@ Possible next steps for the project:
 * CI/CD pipeline
 * Refresh tokens
 * Pagination and filtering
-* More granular authorization / roles
+* Role-based authorization
 * Production deployment
 * API monitoring and logging
 
@@ -395,5 +409,3 @@ Possible next steps for the project:
 **Thiago Henrique**
 
 Software Engineer focused on backend development, APIs and Python.
-
----
